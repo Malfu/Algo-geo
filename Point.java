@@ -10,13 +10,15 @@ public class Point
 	
 	public String nom;
 	
+	public String cote;
+	
 	/** Constructeur avec initialisation de x et y. */
 	public Point(double x, double y)
 	{
 		this.x = x;
 		this.y = y;
-		this.nom = "undef";
 	}
+	
 	public Point(double x, double y, String Nom)
 	{
 		this.x = x;

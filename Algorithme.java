@@ -65,6 +65,7 @@ class Algorithmes {
 		if(!cote && indice > points.size() -1) indice = 0;
 		while(points.elementAt(indice).x != Segment.Base().x && points.elementAt(indice).y != Segment.Base().y)
 		{
+			points.elementAt(indice).cote = "gauche";
 			gauche.add(points.elementAt(indice));
 			if (cote) -- indice;
 			else ++ indice;
@@ -78,7 +79,7 @@ class Algorithmes {
 	
 	static Vector<Point> CalculDroite (Vector<Point> points )
 	{
-		Vector<Point> gauche = new Vector<Point>();
+		Vector<Point> droite = new Vector<Point>();
 		int indice = 0;
 		for(;points.elementAt(indice).x != Segment.Sommet().x && points.elementAt(indice).y != Segment.Sommet().y;++indice);
 		
@@ -95,7 +96,8 @@ class Algorithmes {
 		if(!cote && indice < 0) indice = points.size() -1;
 		while(points.elementAt(indice).x != Segment.Base().x && points.elementAt(indice).y != Segment.Base().y)
 		{
-			gauche.add(points.elementAt(indice));
+			points.elementAt(indice).cote = "droit";
+			droite.add(points.elementAt(indice));
 			if (cote) ++ indice;
 			else -- indice;
 			if (cote && indice > points.size() -1) indice = 0;
@@ -103,7 +105,7 @@ class Algorithmes {
 			
 		}
 		
-		return gauche;
+		return droite;
 	}
 	
 	static Vector<Point> Fusionner (Vector<Point> droite,  Vector<Point> gauche)
@@ -123,32 +125,6 @@ class Algorithmes {
 		return liste;
 		
 			
-	}
-	// retourne 1 si les deux sont dans la chaine, 0 si ils sont des chaine differente, et 2 si ils sont tous les
-	//deux dans l'autre chaine
-	static int MemeChaine (Point point1, Point point2, Vector<Point> liste) 
-	{
-		boolean point1found = false, point2found = false;
-		for(int i = 0; i < liste.size(); ++i)
-		{
-			if(point1.x == liste.elementAt(i).x && point1.y == liste.elementAt(i).y) point1found = true;
-			if(point2.x == liste.elementAt(i).x && point2.y == liste.elementAt(i).y) point2found = true;
-		}
-		if (point1found && point2found) return 1;
-		if (!point1found && !point2found) return 2;
-		return 0;
-	}
-	
-	static boolean AppartientChaine (Point a, Vector<Point> liste)
-	{
-		System.out.println("test de " + a.nom  + "\n");
-		for (int i =0; i < liste.size(); ++i)
-		{
-			//System.out.println(a.nom + " ==" + liste.elementAt(i).x + "?");
-			if(a.x == liste.elementAt(i).x && a.y == liste.elementAt(i).y) return true;
-		}
-		return false;
-					
 	}
 
 	static double determinant (double[][] mat)
@@ -209,7 +185,7 @@ class Algorithmes {
 		
 		for(int j =2; j < liste.size() -1; ++j)
 		{
-			if (MemeChaine(liste.elementAt(j), pile.peek(), droite) == 0 )
+			if (!liste.elementAt(j).cote.equals(pile.peek().cote))
 			{
 				while(!pile.empty())
 				{
@@ -227,10 +203,10 @@ class Algorithmes {
 				/* angle */
 				Point dernier_sommet = sommet;
 				System.out.println("sommet =" + sommet.nom + " dernier_sommet =" + pile.peek().nom + " element j =" + liste.elementAt(j).nom);
-				while( (InfPi(sommet, pile.peek() ,  liste.elementAt(j)) && 
-						AppartientChaine(sommet, droite))  ||
-						(!InfPi(sommet, pile.peek(), liste.elementAt(j) ) && 
-						AppartientChaine(sommet, gauche) ))
+				while( ((InfPi(sommet, pile.peek() ,  liste.elementAt(j))) && 
+						(sommet.cote.equals("droit") )) ||
+						((!InfPi(sommet, pile.peek(), liste.elementAt(j))) && 
+						(sommet.cote.equals("gauche"))) )
 				{
 					diagonales.add(new Segment(liste.elementAt(j), pile.peek()));
 					System.out.println("Contexte : chaines identiques");
@@ -273,6 +249,9 @@ class Algorithmes {
 			System.out.println(droite.elementAt(i).nom + " appartient a droite ( coord :" + droite.elementAt(i).x + " , " + droite.elementAt(i).y + ")");
 		for(int i = 0; i<gauche.size(); ++i)
 			System.out.println(gauche.elementAt(i).nom + " appartient a gauche ( coord :" + gauche.elementAt(i).x + " , " + gauche.elementAt(i).y + ")");
+		
+		for(int i = 0; i<points.size(); ++i)
+			System.out.println("cot du point" + points.elementAt(i).nom + " est : " + points.elementAt(i).cote);
 		
 		Vector<Point> liste = Fusionner(droite, gauche);
 		Vector<Segment> nouvellesDiags = NouvellesDiags(liste,droite, gauche);
@@ -367,3 +346,4 @@ class Algorithmes {
 		return r % n;
 	}
 }
+
