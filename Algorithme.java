@@ -126,55 +126,7 @@ class Algorithmes {
 		
 			
 	}
-
-	static double determinant (double[][] mat)
-	{
-		double result = 0.0;
-		if (mat.length == 1)
-		{
-			result = mat[0][0];
-			return result;
-		}
-		
-		if (mat.length == 2)
-		{
-			result = mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
-			return result;
-		}
-		
-		for (int i = 0; i < mat[0].length; ++i)
-		{
-			double temp[][] = new double[mat.length -1][mat[0].length -1];
-			
-			for(int j = 1; j < mat.length; ++j)
-			{
-				System.arraycopy(mat[j], 0, temp[j-1], 0, i);
-				System.arraycopy(mat[j], i+1, temp[j-1], i, mat[0].length - i - 1);
-			}
-			result += mat[0][i] * Math.pow(-1, i) * determinant(temp);
-		}
-		
-		return result;
-	}
 	
-	static boolean InfPi(Point a, Point b , Point c)
-	{
-		double mat[][] = new double[3][3];
-		mat[0][0] = a.x;
-		mat[0][1] = a.y;
-		mat[1][0] = b.x;
-		mat[1][1] = b.y;
-		mat[2][0] = c.x;
-		mat[2][1] = c.y;
-		mat[0][2] = mat[1][2] = mat[2][2] = 1;
-		double result = determinant(mat);
-		System.out.println("determinant vaut " + result + " pour les points : " + a.nom + " " + b.nom + " " + c.nom + "\n" );
-		return (result >= 0.0);
-	}
-	static void affichersegment(Point a, Point b)
-	{
-		System.out.println("segment : point " + a.nom + " vers point " + b.nom + "\n");
-	}
 	static Vector<Segment> NouvellesDiags(Vector<Point> liste, Vector<Point> droite, Vector<Point> gauche)
 	{
 		Vector<Segment> diagonales = new Vector<Segment>();
@@ -189,8 +141,6 @@ class Algorithmes {
 			{
 				while(!pile.empty())
 				{
-					System.out.println("Contexte : chaines differentes \n");
-					affichersegment(liste.elementAt(j),pile.peek());
 					diagonales.add(new Segment(liste.elementAt(j),pile.pop()));
 				}
 				diagonales.remove(diagonales.size()-1);
@@ -202,15 +152,12 @@ class Algorithmes {
 				Point sommet = pile.pop();
 				/* angle */
 				Point dernier_sommet = sommet;
-				System.out.println("sommet =" + sommet.nom + " dernier_sommet =" + pile.peek().nom + " element j =" + liste.elementAt(j).nom);
-				while( ((InfPi(sommet, pile.peek() ,  liste.elementAt(j))) && 
+				while( ((surface(sommet, pile.peek() ,  liste.elementAt(j))) >0 && 
 						(sommet.cote.equals("droit") )) ||
-						((!InfPi(sommet, pile.peek(), liste.elementAt(j))) && 
+						((surface(sommet, pile.peek(), liste.elementAt(j))) < 0 && 
 						(sommet.cote.equals("gauche"))) )
 				{
 					diagonales.add(new Segment(liste.elementAt(j), pile.peek()));
-					System.out.println("Contexte : chaines identiques");
-					affichersegment(liste.elementAt(j),pile.peek());
 					dernier_sommet = pile.pop();
 					if(pile.empty())break;
 				}
@@ -225,12 +172,8 @@ class Algorithmes {
 			{
 				while(!pile.empty())
 				{
-					System.out.println("Contexte : Dernière condition \n");
-					affichersegment(liste.elementAt(liste.size()-1),pile.peek());
 					diagonales.add(new Segment(liste.elementAt(liste.size()-1),pile.pop()));
 				}
-				System.out.println("Contexte : Remove \n");
-				affichersegment(diagonales.elementAt(diagonales.size()-1).a , diagonales.elementAt(diagonales.size()-1).b);
 				diagonales.remove(diagonales.size()-1);
 			}
 		}
@@ -244,15 +187,6 @@ class Algorithmes {
 		Marquer(points); // le point haut et bas sont marqué
 		Vector<Point> droite = CalculDroite(points);
 		Vector<Point> gauche = CalculGauche(points);
-		
-		for(int i = 0; i<droite.size(); ++i)
-			System.out.println(droite.elementAt(i).nom + " appartient a droite ( coord :" + droite.elementAt(i).x + " , " + droite.elementAt(i).y + ")");
-		for(int i = 0; i<gauche.size(); ++i)
-			System.out.println(gauche.elementAt(i).nom + " appartient a gauche ( coord :" + gauche.elementAt(i).x + " , " + gauche.elementAt(i).y + ")");
-		
-		for(int i = 0; i<points.size(); ++i)
-			System.out.println("cot du point" + points.elementAt(i).nom + " est : " + points.elementAt(i).cote);
-		
 		Vector<Point> liste = Fusionner(droite, gauche);
 		Vector<Segment> nouvellesDiags = NouvellesDiags(liste,droite, gauche);
 
@@ -290,8 +224,6 @@ class Algorithmes {
 		Vector<Point> enveloppe = new Vector<Point>();
 		points.add(point);
 		quickHull(gauche, point, points, enveloppe);
-		for(int i = 0; i< enveloppe.size(); ++i)
-			System.out.println("point " + enveloppe.elementAt(i).nom + "fait partis de l'enveloppe");
 		points.removeElement(point);
 		enveloppe.add(gauche);
 		return enveloppe;
