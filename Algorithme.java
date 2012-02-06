@@ -217,12 +217,17 @@ class Algorithmes {
 	}
 	static Vector<Point> initQuickHull(Vector<Point> points)
 	{
+		Vector<Point> enveloppe = new Vector<Point>();
+		if(points.size() < 4)
+		{
+			enveloppe.addAll(points); // point ou droite ou triangle
+			return enveloppe;
+		}
 		Point gauche = CalculPointGauche(points);
 		Point point = new Point();
 		point.x = gauche.x;
 		point.y = gauche.y + 1.3;
 		point.nom = "temp";
-		Vector<Point> enveloppe = new Vector<Point>();
 		points.add(point);
 		quickHull(gauche, point, points, enveloppe);
 		points.removeElement(point);
@@ -238,7 +243,7 @@ class Algorithmes {
 	    	 enveloppe.add(nuage.elementAt(0)); 
 	    	 return; 
 	     }
-	     // recherche du point de e le plus éloigné du segment p1, p2
+	     // recherche du point du nuage le plus éloigné du segment p1, p2
 	     double d = distance(p1, p2);
 	     Point pM = nuage.elementAt(0) ;
 	     double dM = 2*Math.abs(surface(p1, p2, pM)/d);
@@ -252,21 +257,21 @@ class Algorithmes {
 	            dM = dl;
 	         }
 	     }
-	     // Division de e en e1, e2
-	     Vector<Point> e1 = new Vector<Point>();    
-	     Vector<Point> e2 = new Vector<Point>();
+	     // Division du nuage
+	     Vector<Point> nuage1 = new Vector<Point>();    
+	     Vector<Point> nuage2 = new Vector<Point>();
 	     for( int i = 0; i< nuage.size(); ++i) 
 	     {
 	    	 Point p = nuage.elementAt(i);
 	    	 if( distance(p, pM) != 0 )
 	    	 {
-	    		 if( surface(p1, pM, p) < 0 )  e1.add(p);
-	    		 if( surface(pM, p2, p) < 0 )  e2.add(p);
+	    		 if( surface(p1, pM, p) < 0 )  nuage1.add(p);
+	    		 if( surface(pM, p2, p) < 0 )  nuage2.add(p);
 	    	 }
 	     }
-	     quickHull(p1, pM, e1, enveloppe);
+	     quickHull(p1, pM, nuage1, enveloppe);
 	     enveloppe.add(pM);
-	     quickHull(pM, p2, e2, enveloppe);
+	     quickHull(pM, p2, nuage2, enveloppe);
 	}
 	
 	static Vector<Point> graham(Vector<Point> nuage)
