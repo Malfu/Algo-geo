@@ -1,4 +1,5 @@
 package tp_geometrie1;
+import java.util.Collections;
 import java.util.Random;
 import java.util.Vector;
 import java.util.Stack;
@@ -229,21 +230,21 @@ class Algorithmes {
 		return enveloppe;
 		
 	}
-	static void quickHull (Point p1, Point p2, Vector<Point> e, Vector<Point> enveloppe)
+	static void quickHull (Point p1, Point p2, Vector<Point> nuage, Vector<Point> enveloppe)
 	{
-	     if( e.isEmpty() ) return;
-	     if( e.size() == 1 )
+	     if( nuage.isEmpty() ) return;
+	     if( nuage.size() == 1 )
 	     { 
-	    	 enveloppe.add(e.elementAt(0)); 
+	    	 enveloppe.add(nuage.elementAt(0)); 
 	    	 return; 
 	     }
 	     // recherche du point de e le plus éloigné du segment p1, p2
 	     double d = distance(p1, p2);
-	     Point pM = e.elementAt(0) ;
+	     Point pM = nuage.elementAt(0) ;
 	     double dM = 2*Math.abs(surface(p1, p2, pM)/d);
-	     for( int i = 1; i < e.size(); ++i)
+	     for( int i = 1; i < nuage.size(); ++i)
 	     {
-	         Point p = e.elementAt(i);
+	         Point p = nuage.elementAt(i);
 	         double dl = 2*Math.abs(surface(p1, p2, p)/d);
 	         if(dl > dM)
 	         {
@@ -254,9 +255,9 @@ class Algorithmes {
 	     // Division de e en e1, e2
 	     Vector<Point> e1 = new Vector<Point>();    
 	     Vector<Point> e2 = new Vector<Point>();
-	     for( int i = 0; i< e.size(); ++i) 
+	     for( int i = 0; i< nuage.size(); ++i) 
 	     {
-	    	 Point p = e.elementAt(i);
+	    	 Point p = nuage.elementAt(i);
 	    	 if( distance(p, pM) != 0 )
 	    	 {
 	    		 if( surface(p1, pM, p) < 0 )  e1.add(p);
@@ -266,6 +267,59 @@ class Algorithmes {
 	     quickHull(p1, pM, e1, enveloppe);
 	     enveloppe.add(pM);
 	     quickHull(pM, p2, e2, enveloppe);
+	}
+	
+	static Vector<Point> graham(Vector<Point> nuage)
+	{
+		Vector<Point> enveloppe = new Vector<Point>();
+		
+		if( nuage.size() < 4) // c'est un triangle ou une droite, voir un point
+		{ 
+			enveloppe.addAll(nuage);
+			return enveloppe;
+		}
+		
+		Vector<Point> nuage2 = (Vector<Point>)nuage.clone(); // on clone pour pas modifier nos points
+		// recherche du point le plus bas et le plus à gauche(si il y a des y égaux)
+		Point BasGauche = nuage2.elementAt(0);
+		int iBasGauche = 0;
+		for( int i = 1; i < nuage2.size(); ++i)
+		{
+			Point point = nuage2.elementAt(i);
+		    if(point.y < BasGauche.y || (point.y== BasGauche.y && point.x < BasGauche.x))
+		    {
+		          BasGauche = point;
+		          iBasGauche = i;
+		    }
+		}
+		BasGauche.nom = "Bas_Gauche"; // on marque notre point
+		nuage2.remove(iBasGauche); // on enleve le point trouvé pour l'exclure du trie (c'est lui qui sert de reference)
+		Collections.sort(nuage2 ,new Comparateur(BasGauche)); // on ordonne par angle entre l'élément courant et BasGauche et (0,0)
+		nuage2.add(0, BasGauche); // on remet le plus bas gauche a l'élément 0
+
+		// calcul de l'enveloppe
+		Point p0 = nuage2.elementAt(nuage2.size()-1);// le premier et le dernier font partit de l'enveloppe
+		Point p1 = nuage2.elementAt(0);
+		enveloppe.add(p0);
+		enveloppe.add(p1);
+		for( int i = 1; i < nuage2.size(); ++i) 
+		{
+			Point p2 = nuage2.elementAt(i); // on se place à l'élément courant
+			for( ; ;)
+			{
+				p0 = enveloppe.elementAt(enveloppe.size()-2);
+				p1 = enveloppe.elementAt(enveloppe.size()-1);
+				// si ça tourne pas dans le bon sens on enlève des points de notre enveloppe
+				// jusqu'a ce que ce soit bon
+				if(surface(p0, p1, p2) >= 0 && enveloppe.size()>1)
+				{
+					enveloppe.remove(enveloppe.size()-1);
+		        }
+		        else break;
+			}
+			enveloppe.add(p2); // sinon on ajoute et on continue
+		}
+		return enveloppe;
 	}
 	
 	/** Retourne un nombre aleatoire entre 0 et n-1. */

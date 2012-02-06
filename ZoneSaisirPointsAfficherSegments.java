@@ -54,16 +54,15 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 			}
 		);
 		
-		// Creation du bouton Trianguler
+		// Creation du bouton QuickHull
 		JButton quickHull = new JButton("QuickHull");
 		
-		// Action du bouton trianguler
+		// Action du bouton QuickHull
 		quickHull.addActionListener( new ActionListener(){
 				public void actionPerformed(ActionEvent evt) {
-					Vector<Point> enveloppe = Algorithmes.initQuickHull(canvas.points);
 					Vector<Point> tmp = new Vector<Point>();
-					tmp = canvas.points;
-					canvas.points = enveloppe;
+					tmp = (Vector<Point>)canvas.points.clone();
+					canvas.points = Algorithmes.initQuickHull(canvas.points);
 					canvas.calculer();
 					canvas.segments.add(new Segment(canvas.points.elementAt(0), canvas.points.elementAt(canvas.points.size()-1)));
 					canvas.points.addAll(tmp);
@@ -72,10 +71,27 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 			}
 		);
 		
+		// Creation du bouton Graham
+		JButton graham = new JButton("Graham");
+		
+		// Action du bouton graham
+		graham.addActionListener( new ActionListener(){
+				public void actionPerformed(ActionEvent evt) {
+					Vector<Point> tmp = new Vector<Point>();
+					tmp = (Vector<Point>)canvas.points.clone();
+					canvas.points = Algorithmes.graham(canvas.points);
+					canvas.calculer();
+					canvas.segments.add(new Segment(canvas.points.elementAt(0), canvas.points.elementAt(canvas.points.size()-1)));
+					canvas.points.addAll(tmp);
+					canvas.repaint();
+				}
+			}
+		);
 		// Ajout des boutons au panel panelBoutons
 		panelBoutons.add(effacer);
 		panelBoutons.add(trianguler);
 		panelBoutons.add(quickHull);
+		panelBoutons.add(graham);
 		setLayout(new BorderLayout());
 		
 		// Ajout du canvas au centre
