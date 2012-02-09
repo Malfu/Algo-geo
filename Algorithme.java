@@ -185,6 +185,10 @@ class Algorithmes {
 	/** Algorithme qui triangule le polygone **/
 	static Vector<Segment> trianguler ( Vector<Point> points )
 	{
+		if (points.size() <4)
+		{
+			return new Vector<Segment>();
+		}
 		Marquer(points); // le point haut et bas sont marqué
 		Vector<Point> droite = CalculDroite(points);
 		Vector<Point> gauche = CalculGauche(points);
@@ -207,6 +211,14 @@ class Algorithmes {
 		xmin.nom = "GAUCHE";
 		return xmin;
 	}
+	
+	static double angle (Point p1, Point p2, Point p3) // renvois l'angle entre le segment p1 p2 et l'horizontale (ou p3) par al kashi
+	{
+		Point u = new Point(p2.x - p1.x, p2.y - p1.y);
+		Point v = new Point(p3.x - p1.x, p3.y - p1.y);
+		double result = Math.atan2(v.y, v.x) - Math.atan2(u.y, u.x);
+		return result;
+	}
 	static double distance (Point p1, Point p2)
 	{
 		return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
@@ -228,9 +240,7 @@ class Algorithmes {
 		point.x = gauche.x;
 		point.y = gauche.y + 1.3;
 		point.nom = "temp";
-		points.add(point);
 		quickHull(gauche, point, points, enveloppe);
-		points.removeElement(point);
 		enveloppe.add(gauche);
 		return enveloppe;
 		
@@ -284,13 +294,12 @@ class Algorithmes {
 			return enveloppe;
 		}
 		
-		Vector<Point> nuage2 = (Vector<Point>)nuage.clone(); // on clone pour pas modifier nos points
 		// recherche du point le plus bas et le plus à gauche(si il y a des y égaux)
-		Point BasGauche = nuage2.elementAt(0);
+		Point BasGauche = nuage.elementAt(0);
 		int iBasGauche = 0;
-		for( int i = 1; i < nuage2.size(); ++i)
+		for( int i = 1; i < nuage.size(); ++i)
 		{
-			Point point = nuage2.elementAt(i);
+			Point point = nuage.elementAt(i);
 		    if(point.y < BasGauche.y || (point.y== BasGauche.y && point.x < BasGauche.x))
 		    {
 		          BasGauche = point;
@@ -298,18 +307,18 @@ class Algorithmes {
 		    }
 		}
 		BasGauche.nom = "Bas_Gauche"; // on marque notre point
-		nuage2.remove(iBasGauche); // on enleve le point trouvé pour l'exclure du trie (c'est lui qui sert de reference)
-		Collections.sort(nuage2 ,new Comparateur(BasGauche)); // on ordonne par angle entre l'élément courant et BasGauche et (0,0)
-		nuage2.add(0, BasGauche); // on remet le plus bas gauche a l'élément 0
+		nuage.remove(iBasGauche); // on enleve le point trouvé pour l'exclure du trie (c'est lui qui sert de reference)
+		Collections.sort(nuage ,new Comparateur(BasGauche)); // on ordonne par angle entre l'élément courant et BasGauche et (0,0)
+		nuage.add(0, BasGauche); // on remet le plus bas gauche a l'élément 0
 
 		// calcul de l'enveloppe
-		Point p0 = nuage2.elementAt(nuage2.size()-1);// le premier et le dernier font partit de l'enveloppe
-		Point p1 = nuage2.elementAt(0);
+		Point p0 = nuage.elementAt(nuage.size()-1);// le premier et le dernier font partit de l'enveloppe
+		Point p1 = nuage.elementAt(0);
 		enveloppe.add(p0);
 		enveloppe.add(p1);
-		for( int i = 1; i < nuage2.size(); ++i) 
+		for( int i = 1; i < nuage.size(); ++i) 
 		{
-			Point p2 = nuage2.elementAt(i); // on se place à l'élément courant
+			Point p2 = nuage.elementAt(i); // on se place à l'élément courant
 			for( ; ;)
 			{
 				p0 = enveloppe.elementAt(enveloppe.size()-2);
@@ -327,6 +336,68 @@ class Algorithmes {
 		return enveloppe;
 	}
 	
+	static Vector<Point> jarvis(Vector<Point> nuage)// papier cadeau
+	{
+		Vector<Point> enveloppe = new Vector<Point>();
+	    // recherche du point bas droite (pour changer =p)
+		
+		if( nuage.size() < 4) // c'est un triangle ou une droite, voir un point
+		{ 
+			enveloppe.addAll(nuage);
+			return enveloppe;
+		}
+		
+	    int iBasDroite = 0;
+	    Point BasDroite = nuage.elementAt(0);
+	    for( int i = 1; i < nuage.size(); ++i) 
+	    {
+	         Point p = nuage.elementAt(i);
+	         if(p.y < BasDroite.y || (p.y == BasDroite.y && p.x < BasDroite.x) )
+	         {
+	            BasDroite = p;
+	            iBasDroite = i;
+	         }
+	    }
+	    BasDroite.nom = "BasDroite";
+	    nuage.add(BasDroite);
+	    // basdroite extrait, maintenant on fait les angles
+	    double angle = 0.0;
+	    double anglePrec;
+	    int m, iMin = iBasDroite;
+	    Point tmp = new Point();
+	    for(  m = 0; m < nuage.size()-1; ++m)
+	    {
+	    	tmp = nuage.elementAt(iMin);
+	    	nuage.set(iMin, nuage.elementAt(m));
+	    	nuage.set(m, tmp);
+	    	// recherche du point suivant
+	        iMin = nuage.size()-1;
+	        anglePrec = /*angle;*/ 0.0;
+	        angle = 360.0;
+	        int n = (m-1 >=0 ) ? (m-1) : 0;
+	        for( int i = m+1; i < nuage.size(); ++i)
+	        {
+	        	double a =  Math.toDegrees(angle(nuage.elementAt(m),  nuage.elementAt(n), nuage.elementAt(i)));
+	        	if (a < 0) a = 360 + a;
+	        	if(a > anglePrec && a < angle)
+	            {
+	        		iMin = i;
+	        		angle = a;
+	            }
+	            else if( a==angle )
+	            { 
+	            	// points alignés : choisir le plus éloigné
+	            	if(distance(nuage.elementAt(iMin), nuage.elementAt(m)) < distance(nuage.elementAt(i) , nuage.elementAt(m))) 
+	            	iMin = i; 
+	            }
+	        }
+	        if(iMin == nuage.size()-1 )break;// on est retombé sur le point de départ
+	    }
+	    for( int i = 0; i <= m; ++i) enveloppe.add(nuage.elementAt(i));
+	    nuage.remove(nuage.size()-1);
+	    
+	    return enveloppe;
+	}
 	/** Retourne un nombre aleatoire entre 0 et n-1. */
 	static int rand(int n)
 	{
