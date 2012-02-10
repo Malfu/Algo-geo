@@ -104,12 +104,30 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 				}
 			}
 		);
+		
+		// Creation du bouton partitionFusion
+		JButton partitionFusion = new JButton("partitionFusion");
+		
+		// Action du bouton jarvis
+		partitionFusion.addActionListener( new ActionListener(){
+				public void actionPerformed(ActionEvent evt) {
+					Vector<Point> tmp = new Vector<Point>();
+					tmp = (Vector<Point>)canvas.points.clone();
+					canvas.points = Algorithmes.partition(canvas.points);
+					canvas.calculer();
+					canvas.segments.add(new Segment(canvas.points.elementAt(0), canvas.points.elementAt(canvas.points.size()-1)));
+					canvas.points.addAll(tmp);
+					canvas.repaint();
+				}
+			}
+		);
 		// Ajout des boutons au panel panelBoutons
 		panelBoutons.add(effacer);
 		panelBoutons.add(trianguler);
 		panelBoutons.add(quickHull);
 		panelBoutons.add(graham);
 		panelBoutons.add(jarvis);
+		panelBoutons.add(partitionFusion);
 		setLayout(new BorderLayout());
 		
 		// Ajout du canvas au centre

@@ -398,6 +398,106 @@ class Algorithmes {
 	    
 	    return enveloppe;
 	}
+	
+	static Vector<Point> partition(Vector<Point> nuage)
+	{
+		Vector<Point> enveloppe = new Vector<Point>();
+		
+		// trie des points par x
+		Collections.sort(nuage, new CompX());
+		if(nuage.size() < 4)
+		{
+	        enveloppe.addAll(nuage); 
+	        if(  nuage.size() == 3 && surface(enveloppe.elementAt(0), enveloppe.elementAt(1), enveloppe.elementAt(2)) > 0 )
+	        {
+	        	Point p = enveloppe.elementAt(1);
+	        	enveloppe.remove(p); // u don't understand what I'm doing?
+	        	enveloppe.add(p); // u mad?
+	        	// mais si on enleve ces deux lignes ça marce plus, guess why \o/
+	        }
+	        return enveloppe;
+		}
+
+
+		//On divise en deux le nuage
+		Vector<Point> nuage1 = new Vector<Point>();
+		Vector<Point> nuage2 = new Vector<Point>();
+		for(int i = 0; i < nuage.size()/2 ; ++i) nuage1.add(nuage.elementAt(i));
+	    for(int i = nuage.size()/2 ; i < nuage.size() ; ++i) nuage2.add(nuage.elementAt(i));
+	    
+	    // Calcul des sous enveloppes
+	    Vector<Point> enveloppe1 = partition(nuage1);
+	    Vector<Point> enveloppe2 = partition(nuage2);
+	    // fusion des enveloppes et retour 
+	    enveloppe.addAll( fusion(enveloppe1, enveloppe2) );
+	    return enveloppe;
+	}
+	    
+	static Vector<Point> fusion(Vector<Point> enveloppe1, Vector<Point> enveloppe2)
+	{
+		// recherche x max dans enveloppe 1
+		int iMax = 0;
+		for( int i = 1; i < enveloppe1.size(); ++i) 
+			if(enveloppe1.elementAt(i).x > enveloppe1.elementAt(iMax).x) iMax = i;
+		// le point xMin dans enveloppe2 est en 0 (u don't know why? u mad?)
+		int iMin = 0;
+		
+		// partie haute
+		int ip1 = iMax; 
+		int ip2 = iMin;
+		boolean bool = true;
+		while(bool)
+		{ 
+			bool = false;
+			if(surface(enveloppe2.elementAt(ip2), enveloppe1.elementAt(ip1), enveloppe1.elementAt((ip1+1)%enveloppe1.size()))>0)
+			{
+				ip1 = (ip1+1)%enveloppe1.size();
+				bool = true;
+			}
+			if(surface(enveloppe1.elementAt(ip1), enveloppe2.elementAt(ip2), enveloppe2.elementAt((ip2-1+enveloppe2.size())%enveloppe2.size()))<0)
+			{
+				ip2 = (ip2-1+enveloppe2.size())%enveloppe2.size();
+				bool = true;
+			}
+		}
+		// partie basse, c'est la même chose en inversant les conditions et l'affectation
+		// quelquefois il faut pas réfléchir, a ce stade mon cerveau avais déjà surchauffé
+		int im1 = iMax; 
+		int im2 = iMin;
+		bool = true;
+		while(bool)
+		{ 
+			bool = false;
+			if(surface(enveloppe2.elementAt(im2), enveloppe1.elementAt(im1), enveloppe1.elementAt((im1-1+enveloppe1.size())%enveloppe1.size()))<0)
+			{
+	            im1 = (im1-1+enveloppe1.size())%enveloppe1.size();
+	            bool = true;
+			}
+			if(surface(enveloppe1.elementAt(im1), enveloppe2.elementAt(im2), enveloppe2.elementAt((im2+1)%enveloppe2.size()))>0)
+			{
+	            im2 = (im2+1)%enveloppe2.size();
+	            bool = true;
+			}
+		}
+		// on crée l'enveloppe finale
+		Vector<Point> enveloppe = new Vector<Point>();
+		
+		for( int i = 0; i<=im1; ++i) enveloppe.add(enveloppe1.elementAt(i));
+		
+		if(ip2 == 0)
+		{
+			for( int i = im2; i<enveloppe2.size(); ++i) enveloppe.add(enveloppe2.elementAt(i));
+			
+			enveloppe.add(enveloppe2.elementAt(0));
+		}
+		else for( int i = im2;  i<=ip2; ++i) enveloppe.add(enveloppe2.elementAt(i));
+		
+		if(ip1 != 0) for( int i = ip1; i<enveloppe1.size(); ++i) enveloppe.add(enveloppe1.elementAt(i));
+
+	    return enveloppe;
+	}
+	
+	
 	/** Retourne un nombre aleatoire entre 0 et n-1. */
 	static int rand(int n)
 	{
