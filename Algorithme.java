@@ -238,7 +238,7 @@ class Algorithmes {
 		Point gauche = CalculPointGauche(points);
 		Point point = new Point();
 		point.x = gauche.x;
-		point.y = gauche.y + 1.3;
+		point.y = 1;//gauche.y + 1.3;
 		point.nom = "temp";
 		quickHull(gauche, point, points, enveloppe);
 		enveloppe.add(gauche);

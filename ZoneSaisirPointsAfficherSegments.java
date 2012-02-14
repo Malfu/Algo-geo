@@ -29,14 +29,40 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 		// Creation du bouton Effacer
 		JButton effacer = new JButton("Effacer");
 		
+		// Creation du bouton Polygone suivant
+		final JButton suivant = new JButton("Polygone suivant (" + CanvasSaisirPointsAfficherSegments.polygone_courant + ")" );
+		
+		// Creation du bouton Polygone Precedent
+		final JButton precedent = new JButton("Polygone précédent (" + CanvasSaisirPointsAfficherSegments.polygone_courant + ")");
+		
 		// Action du bouton Effacer
 		effacer.addActionListener( new ActionListener(){
 				public void actionPerformed(ActionEvent evt) {
 					// Suppression des points et des segments
-					canvas.points.removeAllElements();
-					canvas.segments.removeAllElements();
-					canvas.diagonales.removeAllElements();
+					canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).removeAllElements();
+					canvas.segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).removeAllElements();
+					canvas.diagonales.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).removeAllElements();
 					canvas.repaint();
+				}
+			}
+		);
+		
+		// Action du bouton suivant
+		suivant.addActionListener( new ActionListener(){
+				public void actionPerformed(ActionEvent evt) {
+					canvas.polygoneSuivant();
+					suivant.setText("Polygone suivant (" + CanvasSaisirPointsAfficherSegments.polygone_courant + ")");
+					precedent.setText("Polygone precedent (" + CanvasSaisirPointsAfficherSegments.polygone_courant + ")");
+				}
+			}
+		);
+		
+		// Action du bouton precedent
+		precedent.addActionListener( new ActionListener(){
+				public void actionPerformed(ActionEvent evt) {
+					canvas.polygonePrecedent();
+					suivant.setText("Polygone suivant (" + CanvasSaisirPointsAfficherSegments.polygone_courant + ")");
+					precedent.setText("Polygone precedent (" + CanvasSaisirPointsAfficherSegments.polygone_courant + ")");
 				}
 			}
 		);
@@ -47,8 +73,8 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 		// Action du bouton trianguler
 		trianguler.addActionListener( new ActionListener(){
 				public void actionPerformed(ActionEvent evt) {
-					canvas.diagonales = Algorithmes.trianguler(canvas.points);
-					canvas.segments.add(new Segment (canvas.points.elementAt(0), canvas.points.elementAt(canvas.points.size()-1)));
+					canvas.diagonales.setElementAt(Algorithmes.trianguler(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant)), CanvasSaisirPointsAfficherSegments.polygone_courant);
+					canvas.segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).add(new Segment (canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(0), canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size()-1)));
 					canvas.repaint();
 				}
 			}
@@ -60,13 +86,13 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 		// Action du bouton QuickHull
 		quickHull.addActionListener( new ActionListener(){
 				public void actionPerformed(ActionEvent evt) {
-					Vector<Point> tmp = new Vector<Point>();
-					tmp = (Vector<Point>)canvas.points.clone();
-					canvas.points = Algorithmes.initQuickHull(canvas.points);
+					Vector<Vector<Point>> tmp = new Vector<Vector<Point>>();
+					tmp = (Vector<Vector<Point>>)canvas.points.clone();
+					canvas.points.setElementAt(Algorithmes.initQuickHull(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant)) , CanvasSaisirPointsAfficherSegments.polygone_courant);
 					canvas.calculer();
-					canvas.segments.add(new Segment(canvas.points.elementAt(0), canvas.points.elementAt(canvas.points.size()-1)));
-					canvas.points.addAll(tmp);
+					canvas.segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).add(new Segment (canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(0), canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size()-1)));
 					canvas.repaint();
+					canvas.points = tmp; // on remet les points initiaux
 				}
 			}
 		);
@@ -77,13 +103,13 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 		// Action du bouton graham
 		graham.addActionListener( new ActionListener(){
 				public void actionPerformed(ActionEvent evt) {
-					Vector<Point> tmp = new Vector<Point>();
-					tmp = (Vector<Point>)canvas.points.clone();
-					canvas.points = Algorithmes.graham(canvas.points);
+					Vector<Vector<Point>> tmp = new Vector<Vector<Point>>();
+					tmp = (Vector<Vector<Point>>)canvas.points.clone();
+					canvas.points.setElementAt(Algorithmes.graham(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant)) , CanvasSaisirPointsAfficherSegments.polygone_courant);
 					canvas.calculer();
-					canvas.segments.add(new Segment(canvas.points.elementAt(0), canvas.points.elementAt(canvas.points.size()-1)));
-					canvas.points.addAll(tmp);
+					canvas.segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).add(new Segment (canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(0), canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size()-1)));
 					canvas.repaint();
+					canvas.points = tmp; // on remet les points initiaux
 				}
 			}
 		);
@@ -94,13 +120,13 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 		// Action du bouton jarvis
 		jarvis.addActionListener( new ActionListener(){
 				public void actionPerformed(ActionEvent evt) {
-					Vector<Point> tmp = new Vector<Point>();
-					tmp = (Vector<Point>)canvas.points.clone();
-					canvas.points = Algorithmes.jarvis(canvas.points);
+					Vector<Vector<Point>> tmp = new Vector<Vector<Point>>();
+					tmp = (Vector<Vector<Point>>)canvas.points.clone();
+					canvas.points.setElementAt(Algorithmes.jarvis(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant)) , CanvasSaisirPointsAfficherSegments.polygone_courant);
 					canvas.calculer();
-					canvas.segments.add(new Segment(canvas.points.elementAt(0), canvas.points.elementAt(canvas.points.size()-1)));
-					canvas.points.addAll(tmp);
+					canvas.segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).add(new Segment (canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(0), canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size()-1)));
 					canvas.repaint();
+					canvas.points = tmp; // on remet les points initiaux
 				}
 			}
 		);
@@ -108,21 +134,23 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 		// Creation du bouton partitionFusion
 		JButton partitionFusion = new JButton("partitionFusion");
 		
-		// Action du bouton jarvis
+		// Action du bouton partition fusion
 		partitionFusion.addActionListener( new ActionListener(){
 				public void actionPerformed(ActionEvent evt) {
-					Vector<Point> tmp = new Vector<Point>();
-					tmp = (Vector<Point>)canvas.points.clone();
-					canvas.points = Algorithmes.partition(canvas.points);
+					Vector<Vector<Point>> tmp = new Vector<Vector<Point>>();
+					tmp = (Vector<Vector<Point>>)canvas.points.clone();
+					canvas.points.setElementAt(Algorithmes.partition(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant)) , CanvasSaisirPointsAfficherSegments.polygone_courant);
 					canvas.calculer();
-					canvas.segments.add(new Segment(canvas.points.elementAt(0), canvas.points.elementAt(canvas.points.size()-1)));
-					canvas.points.addAll(tmp);
+					canvas.segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).add(new Segment (canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(0), canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(canvas.points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size()-1)));
 					canvas.repaint();
+					canvas.points = tmp; // on remet les points initiaux
 				}
 			}
 		);
 		// Ajout des boutons au panel panelBoutons
 		panelBoutons.add(effacer);
+		panelBoutons.add(precedent);
+		panelBoutons.add(suivant);
 		panelBoutons.add(trianguler);
 		panelBoutons.add(quickHull);
 		panelBoutons.add(graham);
@@ -141,13 +169,14 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 /** La classe CanvasSaisirPointsAfficherSegments. */
 class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener, MouseMotionListener {
 	/** La liste des points affiches. */
-	Vector<Point> points;
+	Vector<Vector<Point>> points;
 	
 	/** La liste des segments affiches. */
-	Vector<Segment> segments;
+	Vector<Vector<Segment>> segments;
 	
-	Vector<Segment> diagonales;
+	Vector<Vector<Segment>> diagonales;
 	
+	public static int polygone_courant = 0;
 	/** Le numero du point selectionne. */
 	private int numSelectedPoint;
 	
@@ -169,12 +198,15 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 	public CanvasSaisirPointsAfficherSegments()
 	{
 		// Creation du vecteur de points
-		points = new Vector<Point>();
+		points = new Vector<Vector<Point>>();
+		points.add( new Vector<Point>());
 		
 		// Creation du vecteur de segments
-		segments = new Vector<Segment>();
+		segments = new Vector<Vector<Segment>>();
+		segments.add( new Vector<Segment>());
 		
-		diagonales = new Vector<Segment>();
+		diagonales = new Vector<Vector<Segment>>();
+		diagonales.add( new Vector<Segment>());
 		// Initialisation du point selectionne
 		numSelectedPoint = -1;
 		
@@ -184,6 +216,27 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 		// Ajout de la gestion des actions souris
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
+	}
+	
+	void polygoneSuivant()
+	{
+		++ polygone_courant;
+		if (polygone_courant >= points.size())
+		{
+			points.add( new Vector<Point>());
+		
+			segments.add( new Vector<Segment>());
+			
+			diagonales.add( new Vector<Segment>());
+		}
+			
+	}
+	
+	void polygonePrecedent()
+	{
+		if (polygone_courant > 0)
+		-- polygone_courant;
+		else System.out.println("pas de polygone precedent");
 	}
 	
 	/** Dessin de la zone d'affichage. */
@@ -203,7 +256,8 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 	/** Affichage des points. */
 	private void drawPoints(Graphics g) {
 		for (int n = 0; n < points.size(); n++) {
-			Point p = points.elementAt(n);
+			for(int m = 0; m < points.elementAt(n).size(); ++m){
+				Point p = points.elementAt(n).elementAt(m);
 			
 			if ( n == numSelectedPoint ) 
 				g.setColor(selectedPointColor);
@@ -214,32 +268,38 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 			g.drawOval((int)(p.x - 2 * POINT_SIZE), (int)(p.y - 2 * POINT_SIZE), 2 * 2 * POINT_SIZE,	2 * 2 * POINT_SIZE);
 			g.drawString(p.nom, (int)p.x + 10, (int)p.y + 10);
 		}
+		}
 	}
 	
 	/** Affichage des segments.
 	 */
 	private void drawSegments(Graphics g) {
 		for (int n = 0; n < segments.size(); n++) {
-			Segment segment = segments.elementAt(n);
+			for(int m = 0; m < segments.elementAt(n).size(); ++m){
+			Segment segment = segments.elementAt(n).elementAt(m);
 			g.setColor(segmentColor);
 			g.drawLine((int)segment.a.x,(int)segment.a.y,(int)segment.b.x,(int)segment.b.y);
+		}
 		}
 	}
 	
 	private void drawDiag(Graphics g)
 	{
 		for (int n = 0; n < diagonales.size(); n++) {
-			Segment segment = diagonales.elementAt(n);
+			for(int m = 0; m < diagonales.elementAt(n).size(); ++m){
+			Segment segment = diagonales.elementAt(n).elementAt(m);
 			g.setColor(diagColor);
 			g.drawLine((int)segment.a.x,(int)segment.a.y,(int)segment.b.x,(int)segment.b.y);
+		}
 		}
 	}
 	
 	/** Retourne le numero du point situe en (x,y). */
 	private int getNumSelectedPoint(int x, int y) {
 		for(int n = 0; n < points.size(); n++)
+			for(int m = 0; m < points.elementAt(n).size(); ++m){
 		{
-			Point p = points.elementAt(n);
+			Point p = points.elementAt(n).elementAt(m);
 			if
 			(
 				p.x > x - 2 * POINT_SIZE && 
@@ -248,6 +308,7 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 				p.y < y + 2 * POINT_SIZE
 			)
 				return n;
+		}
 		}
 		return -1;
 	}
@@ -262,10 +323,10 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 		{
 			if (numSelectedPoint == -1)
 			{
-				numSelectedPoint = points.size();
-				points.addElement(new Point(evt.getX(), evt.getY(), "p" + numSelectedPoint));
+				numSelectedPoint = points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size();
+				points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).addElement(new Point(evt.getX(), evt.getY(), "p" + numSelectedPoint));
 				calculer();
-				segments.add(new Segment (points.elementAt(0), points.elementAt(points.size()-1)));
+				segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).add(new Segment (points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(0), points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size()-1)));
 				repaint();
 			}
 		}
@@ -287,10 +348,10 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 	public void mouseDragged(MouseEvent evt) {
 		if (numSelectedPoint != -1)
 		{
-			points.elementAt(numSelectedPoint).x = evt.getX();
-			points.elementAt(numSelectedPoint).y = evt.getY();
+			points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(numSelectedPoint).x = evt.getX();
+			points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(numSelectedPoint).y = evt.getY();
 			calculer();
-			segments.add(new Segment (points.elementAt(0), points.elementAt(points.size()-1)));
+			segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).add(new Segment (points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(0), points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size()-1)));
 			repaint();
 		}
 	}
@@ -306,7 +367,7 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 	/** Lance l'algorithme sur l'ensemble de points. */
 	public void calculer()
 	{
-		segments = Algorithmes.algorithme1(points);
+		segments.setElementAt(Algorithmes.algorithme1(points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant)) , CanvasSaisirPointsAfficherSegments.polygone_courant);
 	}
 	
 	public void mouseReleased(MouseEvent evt) {}
