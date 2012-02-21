@@ -43,6 +43,9 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 					canvas.segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).removeAllElements();
 					canvas.diagonales.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).removeAllElements();
 					canvas.repaint();
+					if (CanvasSaisirPointsAfficherSegments.polygone_courant > 0 ) --CanvasSaisirPointsAfficherSegments.polygone_courant;
+					suivant.setText("Polygone suivant (" + CanvasSaisirPointsAfficherSegments.polygone_courant + ")");
+					precedent.setText("Polygone precedent (" + CanvasSaisirPointsAfficherSegments.polygone_courant + ")");
 				}
 			}
 		);
