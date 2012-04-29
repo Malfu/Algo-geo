@@ -1,8 +1,5 @@
 package tp_geometrie1;
-import java.util.Collections;
-import java.util.Random;
-import java.util.Vector;
-import java.util.Stack;
+import java.util.*;
 
 /** La classe algorithme. */
 class Algorithmes {
@@ -497,6 +494,430 @@ class Algorithmes {
 	    return enveloppe;
 	}
 	
+	
+	public static Point intersect(Segment s1, Segment s2)
+	{
+		if (s1 == null || s2 == null) return null;
+		Point A = s1.a;
+		Point B = s1.b;
+		Point C = s2.a;
+		Point D = s2.b;
+		
+		double Ax = A.x;
+		double Ay = A.y;
+		double Bx = B.x;
+		double By = B.y;
+		double Cx = C.x;
+		double Cy = C.y;
+		double Dx = D.x;
+		double Dy = D.y;
+ 
+		double Sx;
+		double Sy;
+ 
+		if(Ax==Bx)
+		{
+			if(Cx==Dx) return null;
+			else
+			{
+				double pCD = (Cy-Dy)/(Cx-Dx);
+				Sx = Ax;
+				Sy = pCD*(Ax-Cx)+Cy;
+			}
+		}
+		else
+		{
+			if(Cx==Dx)
+			{
+				double pAB = (Ay-By)/(Ax-Bx);
+				Sx = Cx;
+				Sy = pAB*(Cx-Ax)+Ay;
+			}
+			else
+			{
+				double pCD = (Cy-Dy)/(Cx-Dx);
+				double pAB = (Ay-By)/(Ax-Bx);
+				double oCD = Cy-pCD*Cx;
+				double oAB = Ay-pAB*Ax;
+				Sx = (oAB-oCD)/(pCD-pAB);
+				Sy = pCD*Sx+oCD;
+			}
+		}
+		if((Sx<Ax && Sx<Bx)|(Sx>Ax && Sx>Bx) | (Sx<Cx && Sx<Dx)|(Sx>Cx && Sx>Dx)
+				| (Sy<Ay && Sy<By)|(Sy>Ay && Sy>By) | (Sy<Cy && Sy<Dy)|(Sy>Cy && Sy>Dy)) return null;
+		  return new Point((double)Sx,(double)Sy);
+	}
+	
+	public static boolean Contains(PriorityQueue<Pair<Point, Integer>> X , Point p)
+	{
+		for(Pair<Point, Integer> pp : X)
+		{
+			if(pp.obj1.x == p.x && pp.obj1.y == p.y) return true;
+		}
+		return false;
+	}
+	
+	//fonction qui teste si un point est l'extremitée gauche d'un segment
+	public static boolean isExtrGauche(Pair<Point, Integer> point, Vector<Vector<Segment>> segments)
+	{
+		double gauche = Math.min(segments.elementAt(point.obj2).elementAt(0).a.x,segments.elementAt(point.obj2).elementAt(0).b.x);
+						
+		if (gauche == point.obj1.x) return true;
+		return false;
+	}
+	
+	public static boolean isIntersect(Pair<Point, Integer> point, int limit_intersect)
+	{
+		if (point.obj2 >= limit_intersect)
+		{
+			return true;
+		}
+		return false;
+	}
+	
+	public static void swap_order(Segment s1, Segment s2, Point intersect)
+	{
+		if (s1.a.x > s1.b.x) s1.b = intersect;
+		else s1.a = intersect;
+		
+		if (s2.a.x > s2.b.x) s2.b = intersect;
+		else s2.a = intersect;
+	}
+	
+	public static Vector<Point> intersect_segments(Vector<Vector<Segment>> segments)
+	{
+		TreeSet<Segment> T = new TreeSet<Segment>(new Seg_Comp());
+		
+		PriorityQueue<Pair<Point, Integer>> X = new PriorityQueue<Pair<Point, Integer>>(11, new CompXPair());
+
+		Vector<Point> result = new Vector<Point>();
+		Pair<Point, Integer> E;//point évènement
+		Pair<Point, Integer> intersection = new Pair<Point, Integer>();// point d'intersection
+		
+		int limit_intersect = segments.size(); // a partir de cet indice ce sont des segments d'intersections
+
+		for(int i =0; i < segments.size() ; ++i)
+		{
+			X.add(new Pair(segments.elementAt(i).elementAt(0).a, i));
+			X.add(new Pair(segments.elementAt(i).elementAt(0).b, i));
+		}
+
+
+		while(! X.isEmpty())
+		{
+			E = X.poll();
+			if (isIntersect(E, limit_intersect))
+			{
+				Segment s1 = segments.elementAt(E.obj2).elementAt(0);
+				Segment s2 = segments.elementAt(E.obj2).elementAt(1);
+				
+				T.remove(s1);
+				T.remove(s2);
+				
+				swap_order(s1, s2, E.obj1);
+				
+				T.add(s1);
+				T.add(s2);
+				
+				Seg_Comp comp = new Seg_Comp();
+				Segment dessus, dessous;
+				if (comp.compare(s1, s2) == 1) // s2 plus haut; on recupere le dessous du segment plus haut et dessus du segment plus bas
+				{
+					dessus  = T.higher(s1);
+					dessous = T.lower(s2);
+					
+					if(dessus != null) 
+					{
+						intersection.obj1 = intersect(dessus, s1);
+						if (intersection.obj1 != null && !Double.isNaN(intersection.obj1.x))
+						{
+							if(!Contains(X, intersection.obj1))
+	          				{
+								intersection.obj2 = segments.size(); // on place les segments d'intersections dans l'ensemble des segments
+								Vector<Segment> segments_intersection = new Vector<Segment>();
+								segments_intersection.add(dessus);
+								segments_intersection.add(s1);
+								segments.add(segments_intersection);
+								
+								result.add(intersection.obj1);
+								X.add(intersection);
+	          				}
+						}
+					}
+					
+					if(dessous != null) 
+					{
+						intersection.obj1 = intersect(dessous, s2);
+						if (intersection.obj1 != null && !Double.isNaN(intersection.obj1.x))
+						{
+							if(!Contains(X, intersection.obj1))
+	          				{
+								intersection.obj2 = segments.size(); // on place les segments d'intersections dans l'ensemble des segments
+								Vector<Segment> segments_intersection = new Vector<Segment>();
+								segments_intersection.add(dessous);
+								segments_intersection.add(s2);
+								segments.add(segments_intersection);
+								
+								result.add(intersection.obj1);
+								X.add(intersection);
+	          				}
+						}
+					}
+					
+				}
+				else
+				{
+					dessus  = T.higher(s2);
+					dessous = T.lower(s1);
+					
+					if(dessus != null) 
+					{
+						intersection.obj1 = intersect(dessus, s2);
+						if (intersection.obj1 != null && !Double.isNaN(intersection.obj1.x))
+						{
+							if(!Contains(X, intersection.obj1))
+	          				{
+								intersection.obj2 = segments.size(); // on place les segments d'intersections dans l'ensemble des segments
+								Vector<Segment> segments_intersection = new Vector<Segment>();
+								segments_intersection.add(dessus);
+								segments_intersection.add(s2);
+								segments.add(segments_intersection);
+								
+								result.add(intersection.obj1);
+								X.add(intersection);
+	          				}
+						}
+					}
+					
+					if(dessous != null) 
+					{
+						intersection.obj1 = intersect(dessous, s1);
+						if (intersection.obj1 != null && !Double.isNaN(intersection.obj1.x))
+						{
+							if(!Contains(X, intersection.obj1))
+	          				{
+								intersection.obj2 = segments.size(); // on place les segments d'intersections dans l'ensemble des segments
+								Vector<Segment> segments_intersection = new Vector<Segment>();
+								segments_intersection.add(dessous);
+								segments_intersection.add(s1);
+								segments.add(segments_intersection);
+								
+								result.add(intersection.obj1);
+								X.add(intersection);
+	          				}
+						}
+					}
+				}
+				
+				
+				
+			}
+			else if(isExtrGauche(E, segments))//gauche
+			{	
+				Segment segment_courant = segments.elementAt(E.obj2).elementAt(0);
+				T.add(segment_courant);
+				Segment dessus  = T.higher(segment_courant);
+				Segment dessous = T.lower(segment_courant);
+
+				if(dessus != null) 
+				{
+					intersection.obj1 = intersect(dessus, segment_courant);
+					if (intersection.obj1 != null && !Double.isNaN(intersection.obj1.x))
+					{
+						intersection.obj2 = segments.size(); // on place les segments d'intersections dans l'ensemble des segments
+						Vector<Segment> segments_intersection = new Vector<Segment>();
+						segments_intersection.add(dessus);
+						segments_intersection.add(segment_courant);
+						segments.add(segments_intersection);
+						
+						result.add(intersection.obj1);
+						X.add(intersection);
+					}
+				}
+				
+				if(dessous != null) 
+				{
+					intersection.obj1 = intersect(dessous, segment_courant);
+					if (intersection.obj1 != null && !Double.isNaN(intersection.obj1.x))
+					{
+						intersection.obj2 = segments.size(); // on place les segments d'intersections dans l'ensemble des segments
+						Vector<Segment> segments_intersection = new Vector<Segment>();
+						segments_intersection.add(dessous);
+						segments_intersection.add(segment_courant);
+						segments.add(segments_intersection);
+						
+						result.add(intersection.obj1);
+						X.add(intersection);
+					}
+				}
+			
+			}
+			else // droite
+			{
+				Segment segment_courant = segments.elementAt(E.obj2).elementAt(0);
+				Segment dessus = T.higher(segment_courant);
+				Segment dessous = T.lower(segment_courant);
+          		T.remove(segment_courant);
+
+          		if(dessus != null && dessous != null)
+          		{
+          			intersection.obj1 = intersect(dessus, dessous);
+          			if(intersection.obj1 != null &&  !Double.isNaN(intersection.obj1.x))
+          			{
+          				if(!Contains(X, intersection.obj1))
+          				{
+	    					intersection.obj2 = segments.size(); // on place les segments d'intersections dans l'ensemble des segments
+							Vector<Segment> segments_intersection = new Vector<Segment>();
+							segments_intersection.add(dessous);
+							segments_intersection.add(dessus);
+	    					segments.add(segments_intersection);
+	    					
+	    					result.add(intersection.obj1);
+	          				X.add(intersection);
+          				}
+          			}
+          		}
+          		
+			}
+		}
+		return result;
+	}
+	
+	public static Vector<Point> create_polygon_result(Vector<Pair<Point,Boolean>> nuage1, Vector<Pair<Point,Boolean>> nuage2, int i)
+	{
+		Vector<Point> result = new Vector<Point>();//vecteur de point result
+		
+		Point current = new Point();//point courant a ajouter aux resultats
+		current = nuage2.elementAt(i).obj1;//initialisation
+		
+		Pair<Point,Boolean> tmp = new Pair<Point,Boolean>(nuage2.elementAt(i).obj1, true);//tmp = marqueur de visite des points
+		boolean current_polygone = true;// true = polygone2, false = polygone1
+		
+		while((current_polygone && !nuage2.elementAt(i).obj2) || (!current_polygone && !nuage1.elementAt(i).obj2))//tant que le point n'est pas deja visité
+		{
+			result.add(current);
+			//recherche du current prochain
+			if(current_polygone)//polygone2
+			{
+				tmp = nuage2.elementAt(i);
+				tmp.obj2 = true;
+				nuage2.setElementAt(tmp, i);// marquer comme visité
+				
+				++i;
+				if (i >= nuage2.size()) i = 0;
+				
+				current = nuage2.elementAt(i).obj1;
+				if(current.nom.equals("intersection"))//intersection, se placer sur l'autre polygone
+				{
+					tmp = nuage2.elementAt(i);
+					tmp.obj2 = true;
+					nuage2.setElementAt(tmp, i);// marquer comme visité
+					current_polygone = false;
+					i = 0;
+			
+					while(nuage1.elementAt(i).obj1.x != current.x && nuage1.elementAt(i).obj1.y != current.y) ++i;
+				}
+			}
+			else//polygone1
+			{
+				tmp = nuage1.elementAt(i);
+				tmp.obj2 = true;
+				nuage1.setElementAt(tmp, i);// marquer comme visité
+				++i;
+				if (i >= nuage1.size()) i = 0;
+				
+				current = nuage1.elementAt(i).obj1;
+				
+				if(current.nom.equals("intersection"))//intersection, se placer sur l'autre polygone
+				{
+					tmp = nuage1.elementAt(i);
+					tmp.obj2 = true;
+					nuage1.setElementAt(tmp, i);// marquer comme visité
+					current_polygone = true;
+					
+					i = 0;
+					while(nuage2.elementAt(i).obj1.x != current.x && nuage2.elementAt(i).obj1.y != current.y) ++i;
+				}
+			}
+		}
+		return result;
+	}
+	
+	public static void inserer_proche(Vector<Pair<Point,Boolean>> nuage , Pair<Point,Boolean> point, int indice)
+	{
+		int indice2 = indice + 1;
+		
+		while(indice2 < nuage.size() && distance(nuage.elementAt(indice).obj1, nuage.elementAt(indice2).obj1) < distance(nuage.elementAt(indice).obj1, point.obj1)) ++indice2;
+		nuage.add(indice2, point);
+	}
+	public static Vector<Vector<Point>> Weiler (Vector<Point> nuage1, Vector<Point> nuage2)
+	{
+		Vector<Vector<Point>> result = new Vector<Vector<Point>>();
+		
+		Vector<Pair<Point,Boolean>> new_nuage1 = new Vector<Pair<Point,Boolean>>();// nouveau nuage de point du polygone
+		Vector<Pair<Point,Boolean>> new_nuage2 = new Vector<Pair<Point,Boolean>>();// nouveau nuage de point du polygone
+		
+		// recherche des points d'intersection des polygones
+		int indice;
+		for(int i =0; i<nuage1.size(); ++i)
+		{
+			indice = new_nuage1.size();
+			new_nuage1.add(new Pair<Point,Boolean>(nuage1.elementAt(i),false));
+			for(int j=0; j<nuage2.size(); ++j)
+			{
+				
+				int ni = (i== nuage1.size() -1)? 0 : i+1;
+				int nj = (j== nuage2.size() -1)? 0 : j+1;
+				Segment s1 = new Segment(nuage1.elementAt(i), nuage1.elementAt(ni));
+				Segment s2 = new Segment(nuage2.elementAt(j), nuage2.elementAt(nj));
+				
+				Point intersect = intersect(s1, s2);
+				if (intersect != null)
+				{	
+					intersect.nom = "intersection";
+					Pair<Point,Boolean> intersect_pair = new Pair<Point,Boolean>(intersect,false);
+					inserer_proche(new_nuage1, intersect_pair, indice);
+				}
+			}
+		}
+		
+		for(int i =0; i<nuage2.size(); ++i)
+		{
+			indice = new_nuage2.size();
+			new_nuage2.add(new Pair<Point,Boolean>(nuage2.elementAt(i),false));
+			for(int j=0; j<nuage1.size(); ++j)
+			{
+				
+				int ni = (i== nuage2.size() -1)? 0 : i+1;
+				int nj = (j== nuage1.size() -1)? 0 : j+1;
+				Segment s1 = new Segment(nuage2.elementAt(i), nuage2.elementAt(ni));
+				Segment s2 = new Segment(nuage1.elementAt(j), nuage1.elementAt(nj));
+				
+				Point intersect = intersect(s1, s2);
+				if (intersect != null)
+				{	
+					intersect.nom = "intersection";
+					Pair<Point,Boolean> intersect_pair = new Pair<Point,Boolean>(intersect,false);
+					inserer_proche(new_nuage2, intersect_pair, indice);
+				}
+			}
+		}
+		// fin de la recherche
+		
+		boolean inbound = false;
+		for(int i =0; i<new_nuage2.size(); ++i)
+		{
+			if (!new_nuage2.elementAt(i).obj1.nom.equals("intersection"))continue;// pas une intersection, on continue
+			//intersection , on change d'état(si on est dedans, on sort, et inversement)
+			inbound = !inbound;
+			if(inbound && !new_nuage2.elementAt(i).obj2)//dedans et non visité, on crée un nouveau polygone resultat
+			{
+				result.add(create_polygon_result(new_nuage1, new_nuage2,i));
+			}
+		}
+		return result;
+		
+	}
 	
 	/** Retourne un nombre aleatoire entre 0 et n-1. */
 	static int rand(int n)

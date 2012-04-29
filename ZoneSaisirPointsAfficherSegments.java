@@ -2,6 +2,7 @@ package tp_geometrie1;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -150,6 +151,44 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 				}
 			}
 		);
+		
+		// Creation du bouton intersectSegment
+		JButton intersectSegment = new JButton("intersectSegment");
+		
+		intersectSegment.addActionListener( new ActionListener(){
+			public void actionPerformed(ActionEvent evt) {
+				canvas.pointsAlt = Algorithmes.intersect_segments(canvas.segments);
+				canvas.repaint();
+			}
+		}
+		);
+		
+		// Creation du bouton Weiler
+		JButton Weiler = new JButton("Weiler");
+		
+		Weiler.addActionListener( new ActionListener(){
+			public void actionPerformed(ActionEvent evt) {
+				Vector<Vector<Point>> points = Algorithmes.Weiler(canvas.points.elementAt(0) , canvas.points.elementAt(1));
+				int [] xpoints = new int[100];
+				int [] ypoints = new int[100];
+				int npoint;
+				Vector<Polygon> results = new Vector<Polygon>();
+				for (int i =0; i < points.size(); ++i)
+				{
+					npoint = points.elementAt(i).size();
+					for(int j=0; j<points.elementAt(i).size(); ++j)
+					{
+						xpoints[j] = (int)points.elementAt(i).elementAt(j).x;
+						ypoints[j] = (int)points.elementAt(i).elementAt(j).y;
+					}
+					results.add(new Polygon(xpoints,ypoints,npoint));
+				}
+				canvas.results_polygon = results;
+				canvas.repaint();
+			}
+		}
+		);
+		
 		// Ajout des boutons au panel panelBoutons
 		panelBoutons.add(effacer);
 		panelBoutons.add(precedent);
@@ -159,6 +198,8 @@ public class ZoneSaisirPointsAfficherSegments extends JPanel  {
 		panelBoutons.add(graham);
 		panelBoutons.add(jarvis);
 		panelBoutons.add(partitionFusion);
+		panelBoutons.add(intersectSegment);
+		panelBoutons.add(Weiler);
 		setLayout(new BorderLayout());
 		
 		// Ajout du canvas au centre
@@ -179,6 +220,10 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 	
 	Vector<Vector<Segment>> diagonales;
 	
+	Vector<Point> pointsAlt;
+	
+	Vector<Polygon> results_polygon;
+	
 	public static int polygone_courant = 0;
 	/** Le numero du point selectionne. */
 	private int numSelectedPoint;
@@ -190,6 +235,8 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 	private final Color segmentColor = Color.BLUE;
 	
 	private final Color diagColor = Color.BLACK;
+	
+	private final Color pointAltColor = Color.GREEN;
 	
 	/** La couleur d'un point selectionne a l'ecran. */
 	private final Color selectedPointColor = Color.RED;
@@ -204,12 +251,17 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 		points = new Vector<Vector<Point>>();
 		points.add( new Vector<Point>());
 		
+		pointsAlt = new Vector<Point>();
+		
 		// Creation du vecteur de segments
 		segments = new Vector<Vector<Segment>>();
 		segments.add( new Vector<Segment>());
 		
 		diagonales = new Vector<Vector<Segment>>();
 		diagonales.add( new Vector<Segment>());
+		
+		//polygones
+		results_polygon = new Vector<Polygon>();
 		// Initialisation du point selectionne
 		numSelectedPoint = -1;
 		
@@ -254,6 +306,10 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 		drawDiag(g);
 		// Dessin des points
 		drawPoints(g);
+		
+		drawPointsAlt(g);
+		
+		drawPolygons(g);
 	}
 
 	/** Affichage des points. */
@@ -297,6 +353,33 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 		}
 	}
 	
+	private void drawPointsAlt(Graphics g)
+	{
+	for (int n = 0; n < pointsAlt.size(); n++) {
+		Point p = pointsAlt.elementAt(n);
+		
+		if ( n == numSelectedPoint ) 
+			g.setColor(selectedPointColor);
+		else
+			g.setColor(pointAltColor);
+		
+		if (p == null)continue;
+		
+		g.fillOval((int)(p.x - POINT_SIZE), (int)(p.y - POINT_SIZE), 2 * POINT_SIZE + 1, 2 * POINT_SIZE + 1);
+		g.drawOval((int)(p.x - 2 * POINT_SIZE), (int)(p.y - 2 * POINT_SIZE), 2 * 2 * POINT_SIZE,	2 * 2 * POINT_SIZE);
+		g.drawString("intersect", (int)p.x + 10, (int)p.y + 10);
+	}
+	}
+	
+	private void drawPolygons(Graphics g)
+	{
+		for (int i =0; i< results_polygon.size(); ++i)
+		{
+			g.setColor(Color.YELLOW);
+			g.fillPolygon(results_polygon.elementAt(i));
+		}
+	}
+	
 	/** Retourne le numero du point situe en (x,y). */
 	private int getNumSelectedPoint(int x, int y) {
 		for(int n = 0; n < points.size(); n++)
@@ -327,7 +410,7 @@ class CanvasSaisirPointsAfficherSegments extends JPanel implements MouseListener
 			if (numSelectedPoint == -1)
 			{
 				numSelectedPoint = points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size();
-				points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).addElement(new Point(evt.getX(), evt.getY(), "p" + numSelectedPoint));
+				points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).addElement(new Point(evt.getX(), evt.getY(), "p" + polygone_courant + '.' + numSelectedPoint));
 				calculer();
 				segments.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).add(new Segment (points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(0), points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).elementAt(points.elementAt(CanvasSaisirPointsAfficherSegments.polygone_courant).size()-1)));
 				repaint();
